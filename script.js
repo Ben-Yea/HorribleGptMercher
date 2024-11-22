@@ -4,6 +4,7 @@ let pinnedItems = JSON.parse(localStorage.getItem("pinnedItems")) || []; // Arra
 let marketData = []; // Store fetched market data
 
 async function fetchMarketData() {
+    const pinnedItemsMap = new Map(pinnedItems.map(item => [item.itemId, item]));
     const apiUrl = "https://query.idleclans.com/api/PlayerMarket/items/prices/latest";
     try {
         const response = await fetch(apiUrl);
@@ -15,6 +16,14 @@ async function fetchMarketData() {
         // Save the fetched data to localStorage
         localStorage.setItem("marketData", JSON.stringify(data));
         marketData = data;
+        // Update highest buy prices for pinned items
+        data.forEach(item => {
+            if (pinnedItemsMap.has(item.itemId)) {
+                pinnedItemsMap.get(item.itemId).highestBuyPrice = item.highestBuyPrice;
+            }
+        });
+        pinnedItems = Array.from(pinnedItemsMap.values());
+        updatePinnedItems();
         renderMarketData(data); // Render the data in the table
     } catch (error) {
         console.error("Error fetching market data:", error);
@@ -101,9 +110,11 @@ function updatePinnedItems() {
         const customBuyInput = document.createElement("input");
         customBuyInput.type = "number";
         customBuyInput.value = item.customBuyOffer || 0;
-        customBuyInput.addEventListener("input", (event) => {
+        customBuyInput.addEventListener("change", (event) => {
             item.customBuyOffer = parseFloat(event.target.value) || 0;
             checkNotificationCondition(item, card);
+            // Save updated pinned items to localStorage
+            localStorage.setItem("pinnedItems", JSON.stringify(pinnedItems));
         });
 
         const customBuyContainer = document.createElement("div");
@@ -218,11 +229,10 @@ document.addEventListener("DOMContentLoaded", () => {
     pinButton.textContent = "Pin Item";
     pinButton.addEventListener("click", () => {
         const itemName = searchBox.value;
-        const item = marketData.find(i => getItemNameById(i.itemId).toLowerCase() === itemName.toLowerCase());
-        if (item) {
-            pinItem(item.itemId);
+        if (itemName) {
+            bringItemToTop(itemName);
         } else {
-            alert("Item not found. Please enter a valid item name.");
+            alert("Please enter an item name to search.");
         }
     });
     searchBox.insertAdjacentElement("afterend", pinButton);
