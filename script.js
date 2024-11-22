@@ -22,7 +22,7 @@ async function fetchMarketData() {
 }
 
 function playNotificationSound() {
-    const audio = new Audio('https://www.soundjay.com/button/beep-07.wav');
+    const audio = new Audio('./sounds/beep-07.wav');
     audio.play();
 }
 
@@ -208,6 +208,8 @@ function bringItemToTop(itemName) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Automatically fetch market data every 2 minutes
+    setInterval(fetchMarketData, 120000);
     const savedData = localStorage.getItem("marketData");
     const searchBox = document.getElementById("searchBox");
     const suggestionsDiv = document.getElementById("suggestions");
