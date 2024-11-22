@@ -1,50 +1,52 @@
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
+    background-color: #121212;
+    color: #e0e0e0;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    background-color: #1e1e1e;
 }
 
 table,
 th,
 td {
-    border: 1px solid #ccc;
+    border: 1px solid #333;
 }
 
 th,
 td {
     padding: 8px;
     text-align: center;
+    color: #e0e0e0;
 }
 
 th {
-    background-color: #f4f4f4;
+    background-color: #333;
     cursor: pointer;
 }
 
 .highlight {
-    background-color: #d4edda;
+    background-color: #333;
 }
 
 .recommend {
-    background-color: #add8e6;
+    background-color: #444;
 }
 
 #suggestions {
     position: absolute;
-    background-color: white;
-    border: 1px solid #ccc;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    color: #e0e0e0;
     z-index: 1000;
     max-height: 200px;
-    /* Limit height for long lists */
     overflow-y: auto;
-    /* Enable scrolling if suggestions exceed max-height */
     display: none;
-    /* Hidden by default */
 }
 
 #suggestions div {
@@ -54,8 +56,7 @@ th {
 
 #suggestions div:hover,
 #suggestions div.highlighted {
-    background-color: #f0f0f0;
-    /* Highlight suggestion on hover or with arrow keys */
+    background-color: #333;
 }
 
 .pinned-items-container {
@@ -69,24 +70,19 @@ th {
 #pinnedItems {
     display: flex;
     justify-content: space-between;
-    /* Distribute cards evenly */
     flex-wrap: nowrap;
-    /* Prevent wrapping to new lines */
     gap: 5px;
-    /* Reduce spacing between cards */
     margin-bottom: 20px;
 }
 
 .pinned-item-card {
     flex: 1;
-    /* Ensure cards resize to fit */
     max-width: 16%;
-    /* Restrict width for six cards on one row */
-    background-color: #f9f9f9;
-    border: 1px solid #ccc;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
     border-radius: 8px;
     padding: 10px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -97,8 +93,23 @@ th {
 
 .pinned-item-card:hover {
     transform: scale(1.05);
-    background-color: #f0f0f0;
+    background-color: #333;
 }
+
+.pinned-item-card.flashing-red {
+    animation: flashRed 1s infinite alternate !important;
+}
+
+@keyframes flashRed {
+    0% {
+        background-color: rgba(255, 0, 0, 0.2);
+    }
+
+    100% {
+        background-color: rgba(255, 0, 0, 0.5);
+    }
+}
+
 
 .pinned-item-card h4 {
     font-size: 14px;

@@ -4,7 +4,7 @@ let pinnedItems = JSON.parse(localStorage.getItem("pinnedItems")) || []; // Arra
 let marketData = []; // Store fetched market data
 
 async function fetchMarketData() {
-    const pinnedItemsMap = new Map(pinnedItems.map(item => [item.itemId, item]));
+    const pinnedItemsMap = new Map(pinnedItems.map(item => [item.itemId, { ...item }]));
     const apiUrl = "https://query.idleclans.com/api/PlayerMarket/items/prices/latest";
     try {
         const response = await fetch(apiUrl);
@@ -19,10 +19,15 @@ async function fetchMarketData() {
         // Update highest buy prices for pinned items
         data.forEach(item => {
             if (pinnedItemsMap.has(item.itemId)) {
-                pinnedItemsMap.get(item.itemId).highestBuyPrice = item.highestBuyPrice;
+                const pinnedItem = pinnedItemsMap.get(item.itemId);
+                pinnedItem.highestBuyPrice = item.highestBuyPrice;
+                if (typeof item.customBuyOffer !== 'undefined') {
+                    pinnedItem.customBuyOffer = item.customBuyOffer;
+                }
             }
         });
         pinnedItems = Array.from(pinnedItemsMap.values());
+        localStorage.setItem("pinnedItems", JSON.stringify(pinnedItems));
         updatePinnedItems();
         renderMarketData(data); // Render the data in the table
     } catch (error) {
@@ -78,11 +83,11 @@ function renderMarketData(data, sortColumn = "itemId", sortOrder = "asc", skipSo
         // Create individual cells
         row.innerHTML = `
             <td>${itemName}</td>
-            <td style="background-color: #f8d7da;">${highestBuyPrice}</td>
-            <td style="background-color: #dbefff;">${lowestSellPrice}</td>
+            <td>${highestBuyPrice}</td>
+            <td>${lowestSellPrice}</td>
             <td>${highestPriceVolume}</td>
             <td>${lowestPriceVolume}</td>
-            <td style="background-color: ${profit > 1 ? "#d4edda" : "#ffffff"};">${profit.toLocaleString()}</td>
+            <td>${profit.toLocaleString()}</td>
         `;
 
         tbody.appendChild(row);
@@ -113,9 +118,9 @@ function updatePinnedItems() {
         customBuyInput.addEventListener("change", (event) => {
             item.customBuyOffer = parseFloat(event.target.value) || 0;
             checkNotificationCondition(item, card);
-            // Save updated pinned items to localStorage
-            localStorage.setItem("pinnedItems", JSON.stringify(pinnedItems));
+            localStorage.setItem("pinnedItems", JSON.stringify(pinnedItems)); // Persist changes
         });
+
 
         const customBuyContainer = document.createElement("div");
         customBuyContainer.appendChild(customBuyLabel);
@@ -140,13 +145,27 @@ function updatePinnedItems() {
 }
 
 function checkNotificationCondition(item, card) {
-    if (item.customBuyOffer && item.highestBuyPrice > item.customBuyOffer) {
-        playNotificationSound();
-        card.style.backgroundColor = "#ffcccc"; // Highlight card in red
+    if (
+        typeof item.customBuyOffer === "number" &&
+        typeof item.highestBuyPrice === "number" &&
+        item.customBuyOffer < item.highestBuyPrice
+    ) {
+        if (!card.classList.contains("flashing-red")) {
+            playNotificationSound(); // Play sound only when first entering the condition
+        }
+        card.classList.add("flashing-red");
+        // Force animation restart
+        card.style.animation = "none";
+        setTimeout(() => {
+            card.style.animation = "flashRed 1s infinite alternate";
+        }, 0);
     } else {
-        card.style.backgroundColor = ""; // Reset background color
+        card.classList.remove("flashing-red");
+        card.style.animation = ""; // Remove animation if condition is not met
     }
 }
+
+
 
 function pinItem(itemId) {
     // Save pinned items to localStorage after updating
@@ -219,8 +238,33 @@ function bringItemToTop(itemName) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Timer display for auto-fetch
+    const timerDiv = document.createElement("div");
+    timerDiv.id = "fetchTimer";
+    timerDiv.style.position = "fixed";
+    timerDiv.style.top = "10px";
+    timerDiv.style.right = "10px";
+    timerDiv.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+    timerDiv.style.color = "white";
+    timerDiv.style.padding = "5px 10px";
+    timerDiv.style.borderRadius = "5px";
+    document.body.appendChild(timerDiv);
+
+    let timeLeft = 120;
+    function updateTimer() {
+        timerDiv.textContent = `Next data fetch in: ${timeLeft} seconds`;
+        timeLeft--;
+        if (timeLeft < 0) {
+            timeLeft = 120;
+        }
+    }
+    setInterval(updateTimer, 1000);
+    updateTimer();
     // Automatically fetch market data every 2 minutes
-    setInterval(fetchMarketData, 120000);
+    setInterval(() => {
+        fetchMarketData();
+        timeLeft = 120; // Reset timer after fetching
+    }, 120000);
     const savedData = localStorage.getItem("marketData");
     const searchBox = document.getElementById("searchBox");
     const suggestionsDiv = document.getElementById("suggestions");
@@ -230,9 +274,14 @@ document.addEventListener("DOMContentLoaded", () => {
     pinButton.addEventListener("click", () => {
         const itemName = searchBox.value;
         if (itemName) {
-            bringItemToTop(itemName);
+            const item = marketData.find(i => getItemNameById(i.itemId).toLowerCase() === itemName.toLowerCase());
+            if (item) {
+                pinItem(item.itemId);
+            } else {
+                alert("Item not found. Please enter a valid item name.");
+            }
         } else {
-            alert("Please enter an item name to search.");
+            alert("Please enter an item name to pin.");
         }
     });
     searchBox.insertAdjacentElement("afterend", pinButton);
@@ -244,7 +293,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Fetch data button
-    document.getElementById("fetchData").addEventListener("click", fetchMarketData);
+    document.getElementById("fetchData").addEventListener("click", () => {
+        fetchMarketData();
+    });
 
     // Search box functionality
     searchBox.addEventListener("input", handleSearch);
