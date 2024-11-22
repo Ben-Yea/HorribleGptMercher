@@ -25,29 +25,26 @@
             }
         }
 
-        function renderMarketData(data, sortColumn = null, sortOrder = 'asc') {
+        function renderMarketData(data, sortColumn = "itemId", sortOrder = "asc") {
             const tbody = document.getElementById("marketData");
             tbody.innerHTML = ""; // Clear previous data
 
-            // Sort the data if a column is specified
-            if (sortColumn) {
-                data = [...data].sort((a, b) => {
-                    const valueA = sortColumn === "profit"
-                        ? (typeof a.lowestSellPrice === "number" && typeof a.highestBuyPrice === "number"
-                            ? a.lowestSellPrice - a.highestBuyPrice
-                            : Number.MAX_VALUE) // Push "N/A" to the bottom
-                        : a[sortColumn];
-                    const valueB = sortColumn === "profit"
-                        ? (typeof b.lowestSellPrice === "number" && typeof b.highestBuyPrice === "number"
-                            ? b.lowestSellPrice - b.highestBuyPrice
-                            : Number.MAX_VALUE)
-                        : b[sortColumn];
+            // Sort the data by default on itemId numerically if no column is specified
+            data = [...data].sort((a, b) => {
+                const valueA = sortColumn === "profit"
+                    ? (typeof a.lowestSellPrice === "number" && typeof a.highestBuyPrice === "number"
+                        ? a.lowestSellPrice - a.highestBuyPrice
+                        : Number.MAX_VALUE) // Push "N/A" to the bottom
+                    : a[sortColumn];
+                const valueB = sortColumn === "profit"
+                    ? (typeof b.lowestSellPrice === "number" && typeof b.highestBuyPrice === "number"
+                        ? b.lowestSellPrice - b.highestBuyPrice
+                        : Number.MAX_VALUE)
+                    : b[sortColumn];
 
-                    if (valueA === undefined || valueB === undefined) return 0; // Handle undefined
-                    if (sortOrder === 'asc') return valueA - valueB;
-                    return valueB - valueA;
-                });
-            }
+                if (valueA === undefined || valueB === undefined) return 0; // Handle undefined
+                return sortOrder === "asc" ? valueA - valueB : valueB - valueA;
+            });
 
             data.forEach(item => {
                 const itemName = getItemNameById(item.itemId);
@@ -58,24 +55,46 @@
                 const highestPriceVolume = item.highestPriceVolume ? item.highestPriceVolume.toLocaleString() : "0";
                 const profit = (lowestSellPrice !== "0" && highestBuyPrice !== "0")
                     ? item.lowestSellPrice - item.highestBuyPrice
-                    : 0; // Keep `profit` as a number
+                    : 0;
 
                 const row = document.createElement("tr");
                 if (!itemName) return; // Skip rows for unmapped item IDs
-                if (profit > 0) row.classList.add("highlight"); // Correctly check numeric profit
 
-                row.innerHTML = `
-    <td>${itemName}</td>
-    <td>${highestBuyPrice}</td>
-    <td>${lowestSellPrice}</td>
-    <td>${highestPriceVolume}</td>
-    <td>${lowestPriceVolume}</td>
-    <td>${profit.toLocaleString()}</td> <!-- Format profit for display -->
-`;
+                // Create individual cells with conditional styling
+                const nameCell = document.createElement("td");
+                nameCell.textContent = itemName;
+
+                const highestBuyCell = document.createElement("td");
+                highestBuyCell.textContent = highestBuyPrice;
+                highestBuyCell.style.backgroundColor = "#f8d7da"; // Light red
+
+                const lowestSellCell = document.createElement("td");
+                lowestSellCell.textContent = lowestSellPrice;
+                lowestSellCell.style.backgroundColor = "#dbefff"; // Light blue
+
+                const highestVolumeCell = document.createElement("td");
+                highestVolumeCell.textContent = highestPriceVolume;
+
+                const lowestVolumeCell = document.createElement("td");
+                lowestVolumeCell.textContent = lowestPriceVolume;
+
+                const profitCell = document.createElement("td");
+                profitCell.textContent = profit.toLocaleString();
+                profitCell.style.backgroundColor = profit > 1 ? "#d4edda" : "#ffffff"; // Light green for profit > 1, white for 0 or less
+
+                // Append cells to the row
+                row.appendChild(nameCell);
+                row.appendChild(highestBuyCell);
+                row.appendChild(lowestSellCell);
+                row.appendChild(highestVolumeCell);
+                row.appendChild(lowestVolumeCell);
+                row.appendChild(profitCell);
 
                 tbody.appendChild(row);
             });
         }
+
+
 
         document.addEventListener("DOMContentLoaded", () => {
             const savedData = localStorage.getItem("marketData");
