@@ -1,0 +1,59 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table,
+th,
+td {
+    border: 1px solid #ccc;
+}
+
+th,
+td {
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: #f4f4f4;
+    cursor: pointer;
+}
+
+.highlight {
+    background-color: #d4edda;
+}
+
+.recommend {
+    background-color: #add8e6;
+}
+
+#suggestions {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    z-index: 1000;
+    max-height: 200px;
+    /* Limit height for long lists */
+    overflow-y: auto;
+    /* Enable scrolling if suggestions exceed max-height */
+    display: none;
+    /* Hidden by default */
+}
+
+#suggestions div {
+    padding: 8px;
+    cursor: pointer;
+}
+
+#suggestions div:hover,
+#suggestions div.highlighted {
+    background-color: #f0f0f0;
+    /* Highlight suggestion on hover or with arrow keys */
+}

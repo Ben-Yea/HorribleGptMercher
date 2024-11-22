@@ -5,214 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Merching Helper</title>
-    <script type="module">
-        import { getItemNameById } from './item_mappings.js'; // Reference to the item mappings
+    <link rel="preload" href="styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="styles.css">
+    </noscript>
 
-        async function fetchMarketData() {
-            const apiUrl = "https://query.idleclans.com/api/PlayerMarket/items/prices/latest";
-            try {
-                const response = await fetch(apiUrl);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const data = await response.json();
-
-                // Save the fetched data to localStorage
-                localStorage.setItem("marketData", JSON.stringify(data));
-                renderMarketData(data); // Render the data in the table
-            } catch (error) {
-                console.error("Error fetching market data:", error);
-            }
-        }
-
-        function renderMarketData(data, sortColumn = "itemId", sortOrder = "asc") {
-            const tbody = document.getElementById("marketData");
-            tbody.innerHTML = ""; // Clear previous data
-
-            // Sort the data by default on itemId numerically if no column is specified
-            data = [...data].sort((a, b) => {
-                const valueA = sortColumn === "profit"
-                    ? (typeof a.lowestSellPrice === "number" && typeof a.highestBuyPrice === "number"
-                        ? a.lowestSellPrice - a.highestBuyPrice
-                        : Number.MAX_VALUE) // Push "N/A" to the bottom
-                    : a[sortColumn];
-                const valueB = sortColumn === "profit"
-                    ? (typeof b.lowestSellPrice === "number" && typeof b.highestBuyPrice === "number"
-                        ? b.lowestSellPrice - b.highestBuyPrice
-                        : Number.MAX_VALUE)
-                    : b[sortColumn];
-
-                if (valueA === undefined || valueB === undefined) return 0; // Handle undefined
-                return sortOrder === "asc" ? valueA - valueB : valueB - valueA;
-            });
-
-            data.forEach(item => {
-                const itemName = getItemNameById(item.itemId);
-                if (!itemName || itemName === "Unknown Item") return; // Skip unmapped or unknown items
-                const lowestSellPrice = item.lowestSellPrice ? item.lowestSellPrice.toLocaleString() : "0";
-                const lowestPriceVolume = item.lowestPriceVolume ? item.lowestPriceVolume.toLocaleString() : "0";
-                const highestBuyPrice = item.highestBuyPrice ? item.highestBuyPrice.toLocaleString() : "0";
-                const highestPriceVolume = item.highestPriceVolume ? item.highestPriceVolume.toLocaleString() : "0";
-                const profit = (lowestSellPrice !== "0" && highestBuyPrice !== "0")
-                    ? item.lowestSellPrice - item.highestBuyPrice
-                    : 0;
-
-                const row = document.createElement("tr");
-                if (!itemName) return; // Skip rows for unmapped item IDs
-
-                // Create individual cells with conditional styling
-                const nameCell = document.createElement("td");
-                nameCell.textContent = itemName;
-
-                const highestBuyCell = document.createElement("td");
-                highestBuyCell.textContent = highestBuyPrice;
-                highestBuyCell.style.backgroundColor = "#f8d7da"; // Light red
-
-                const lowestSellCell = document.createElement("td");
-                lowestSellCell.textContent = lowestSellPrice;
-                lowestSellCell.style.backgroundColor = "#dbefff"; // Light blue
-
-                const highestVolumeCell = document.createElement("td");
-                highestVolumeCell.textContent = highestPriceVolume;
-
-                const lowestVolumeCell = document.createElement("td");
-                lowestVolumeCell.textContent = lowestPriceVolume;
-
-                const profitCell = document.createElement("td");
-                profitCell.textContent = profit.toLocaleString();
-                profitCell.style.backgroundColor = profit > 1 ? "#d4edda" : "#ffffff"; // Light green for profit > 1, white for 0 or less
-
-                // Append cells to the row
-                row.appendChild(nameCell);
-                row.appendChild(highestBuyCell);
-                row.appendChild(lowestSellCell);
-                row.appendChild(highestVolumeCell);
-                row.appendChild(lowestVolumeCell);
-                row.appendChild(profitCell);
-
-                tbody.appendChild(row);
-            });
-        }
-
-
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const savedData = localStorage.getItem("marketData");
-            const tableHeaders = document.querySelectorAll("thead th");
-            let currentSortColumn = null;
-            let currentSortOrder = 'asc';
-
-            if (savedData) {
-                const parsedData = JSON.parse(savedData);
-                renderMarketData(parsedData);
-            }
-
-            // Attach fetch event to the button
-            document.getElementById("fetchData").addEventListener("click", fetchMarketData);
-
-            // Attach click events for sorting headers
-            tableHeaders.forEach((header, index) => {
-                header.addEventListener("click", () => {
-                    const columns = ["itemId", "highestBuyPrice", "lowestSellPrice", "highestPriceVolume", "lowestPriceVolume", "profit"];
-                    const sortColumn = columns[index];
-
-                    // Toggle sort order
-                    currentSortOrder = currentSortColumn === sortColumn && currentSortOrder === 'asc' ? 'desc' : 'asc';
-                    currentSortColumn = sortColumn;
-
-                    const savedData = localStorage.getItem("marketData");
-                    if (savedData) {
-                        const parsedData = JSON.parse(savedData);
-                        renderMarketData(parsedData, sortColumn, currentSortOrder);
-                    }
-                });
-            });
-        });
-
-
-        function recommendMerchItems(data) {
-            const tbody = document.getElementById("marketData").querySelectorAll("tr");
-            tbody.forEach(row => row.classList.remove("recommend")); // Clear previous recommendations
-
-            data.forEach(item => {
-                const lowestSellPrice = item.lowestSellPrice || 0;
-                const highestBuyPrice = item.highestBuyPrice || 0;
-                const profit = lowestSellPrice - highestBuyPrice;
-                const buyVolume = item.highestPriceVolume || 0;
-                const sellVolume = item.lowestPriceVolume || 0;
-
-                // Recommendation criteria: positive profit and reasonable volumes
-                if (profit > 0 && buyVolume > 10 && sellVolume > 10) {
-                    const rows = document.querySelectorAll("tbody tr");
-                    rows.forEach(row => {
-                        const itemName = getItemNameById(item.itemId);
-                        if (!itemName || itemName === "Unknown Item") return; // Skip unmapped or unknown items
-
-                        if (row.cells[0].textContent === itemName) {
-                            row.classList.add("recommend");
-                        }
-                    });
-                }
-            });
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const recommendButton = document.createElement("button");
-            recommendButton.textContent = "Recommend Items to Merch";
-            recommendButton.addEventListener("click", () => {
-                const savedData = localStorage.getItem("marketData");
-                if (savedData) {
-                    const parsedData = JSON.parse(savedData);
-                    recommendMerchItems(parsedData);
-                }
-            });
-
-            document.body.insertBefore(recommendButton, document.querySelector("table"));
-        });
-
-    </script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        table,
-        th,
-        td {
-            border: 1px solid #ccc;
-        }
-
-        th,
-        td {
-            padding: 8px;
-            text-align: center;
-        }
-
-        th {
-            background-color: #f4f4f4;
-            cursor: pointer;
-        }
-
-        .highlight {
-            background-color: #d4edda;
-        }
-
-        .recommend {
-            background-color: #add8e6;
-        }
-    </style>
+    <script type="module" src="script.js"></script>
 </head>
 
 <body>
     <h1>Merching Helper</h1>
-    <button id="fetchData">Fetch Market Data</button>
+    <div>
+        <button id="fetchData">Fetch Market Data</button>
+        <input type="text" id="searchBox" placeholder="Search for items..." list="suggestions">
+        <datalist id="suggestions"></datalist>
+        <button id="searchButton">Search</button>
+    </div>
     <table>
         <thead>
             <tr>
