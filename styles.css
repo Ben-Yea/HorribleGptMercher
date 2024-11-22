@@ -92,8 +92,11 @@ th {
 }
 
 .pinned-item-card:hover {
-    transform: scale(1.05);
+    transform: scale(1.02);
+    /* Reduce the growth to be subtle */
     background-color: #333;
+    /* Retain the background color change */
+    transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
 }
 
 .pinned-item-card.flashing-red {
@@ -119,4 +122,30 @@ th {
 .pinned-item-card p {
     font-size: 12px;
     margin: 0;
+}
+
+.pinned-item-card {
+    position: relative;
+    /* Allows positioning the remove button inside the tile */
+}
+
+.pinned-item-card .remove-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: transparent;
+    border: none;
+    color: #ff5555;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.2s, color 0.2s;
+}
+
+.pinned-item-card .remove-button:hover {
+    color: #ff2222;
+    transform: scale(1.2);
+}
+
+.pinned-item-card .remove-button:focus {
+    outline: none;
 }

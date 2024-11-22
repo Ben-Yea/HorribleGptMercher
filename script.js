@@ -95,12 +95,11 @@ function renderMarketData(data, sortColumn = "itemId", sortOrder = "asc", skipSo
 }
 
 function updatePinnedItems() {
-    // Save pinned items to localStorage
     localStorage.setItem("pinnedItems", JSON.stringify(pinnedItems));
     const container = document.getElementById("pinnedItems");
     container.innerHTML = ""; // Clear existing cards
 
-    pinnedItems.forEach(item => {
+    pinnedItems.forEach((item, index) => {
         const card = document.createElement("div");
         card.className = "pinned-item-card";
 
@@ -118,20 +117,30 @@ function updatePinnedItems() {
         customBuyInput.addEventListener("change", (event) => {
             item.customBuyOffer = parseFloat(event.target.value) || 0;
             checkNotificationCondition(item, card);
-            localStorage.setItem("pinnedItems", JSON.stringify(pinnedItems)); // Persist changes
+            localStorage.setItem("pinnedItems", JSON.stringify(pinnedItems));
         });
-
 
         const customBuyContainer = document.createElement("div");
         customBuyContainer.appendChild(customBuyLabel);
         customBuyContainer.appendChild(customBuyInput);
 
+        // Add a remove button
+        const removeButton = document.createElement("button");
+        removeButton.className = "remove-button";
+        removeButton.textContent = "✖"; // Use an 'X' or similar icon for the button
+        removeButton.title = "Remove item"; // Tooltip for accessibility
+        removeButton.addEventListener("click", () => {
+            pinnedItems.splice(index, 1); // Remove item from pinnedItems
+            localStorage.setItem("pinnedItems", JSON.stringify(pinnedItems)); // Update localStorage
+            updatePinnedItems(); // Refresh pinned items
+        });
+
         card.appendChild(name);
         card.appendChild(highestBuy);
         card.appendChild(customBuyContainer);
+        card.appendChild(removeButton);
 
-        checkNotificationCondition(item, card);
-
+        checkNotificationCondition(item, card); // Ensure animation and flashing are handled
         container.appendChild(card);
     });
 
@@ -143,6 +152,9 @@ function updatePinnedItems() {
         container.appendChild(emptyCard);
     }
 }
+
+
+
 
 function checkNotificationCondition(item, card) {
     if (
@@ -164,7 +176,6 @@ function checkNotificationCondition(item, card) {
         card.style.animation = ""; // Remove animation if condition is not met
     }
 }
-
 
 
 function pinItem(itemId) {
