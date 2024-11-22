@@ -1,4 +1,3 @@
-
 import { getItemNameById } from './item_mappings.js'; // Reference to the item mappings
 
 async function fetchMarketData() {
