@@ -61,7 +61,10 @@ function renderMarketData(data, sortColumn = "itemId", sortOrder = "asc", skipSo
                     : Number.MAX_VALUE)
                 : b[sortColumn];
 
-            if (valueA === undefined || valueB === undefined) return 0; // Handle undefined
+            // Handle undefined values
+            if (valueA === undefined || valueB === undefined) return 0;
+
+            // Sort based on the current order
             return sortOrder === "asc" ? valueA - valueB : valueB - valueA;
         });
     }
@@ -70,6 +73,7 @@ function renderMarketData(data, sortColumn = "itemId", sortOrder = "asc", skipSo
     data.forEach(item => {
         const itemName = getItemNameById(item.itemId);
         if (!itemName || itemName === "Unknown Item") return; // Skip unmapped or unknown items
+
         const lowestSellPrice = item.lowestSellPrice ? item.lowestSellPrice.toLocaleString() : "0";
         const lowestPriceVolume = item.lowestPriceVolume ? item.lowestPriceVolume.toLocaleString() : "0";
         const highestBuyPrice = item.highestBuyPrice ? item.highestBuyPrice.toLocaleString() : "0";
@@ -271,31 +275,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     setInterval(updateTimer, 1000);
     updateTimer();
+
     // Automatically fetch market data every 2 minutes
     setInterval(() => {
         fetchMarketData();
         timeLeft = 120; // Reset timer after fetching
     }, 120000);
+
+    // Load saved market data
     const savedData = localStorage.getItem("marketData");
     const searchBox = document.getElementById("searchBox");
     const suggestionsDiv = document.getElementById("suggestions");
-    const pinButton = document.createElement("button");
-    pinButton.id = "pinButton";
-    pinButton.textContent = "Pin Item";
-    pinButton.addEventListener("click", () => {
-        const itemName = searchBox.value;
-        if (itemName) {
-            const item = marketData.find(i => getItemNameById(i.itemId).toLowerCase() === itemName.toLowerCase());
-            if (item) {
-                pinItem(item.itemId);
-            } else {
-                alert("Item not found. Please enter a valid item name.");
-            }
-        } else {
-            alert("Please enter an item name to pin.");
-        }
-    });
-    searchBox.insertAdjacentElement("afterend", pinButton);
+    const pinButton = document.getElementById("pinButton");
 
     if (savedData) {
         marketData = JSON.parse(savedData);
@@ -310,6 +301,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Search box functionality
     searchBox.addEventListener("input", handleSearch);
+
+    // Pin button functionality
+    pinButton.addEventListener("click", () => {
+        const itemName = searchBox.value.trim();
+        if (itemName) {
+            const item = marketData.find(
+                i => getItemNameById(i.itemId).toLowerCase() === itemName.toLowerCase()
+            );
+            if (item) {
+                pinItem(item.itemId);
+            } else {
+                alert("Item not found. Please enter a valid item name.");
+            }
+        } else {
+            alert("Please enter an item name to pin.");
+        }
+    });
 
     // Autofill on TAB key and highlight suggestions with Arrow keys
     let selectedSuggestionIndex = -1;
@@ -338,5 +346,25 @@ document.addEventListener("DOMContentLoaded", () => {
             suggestionsDiv.style.display = "none";
             event.preventDefault();
         }
+    });
+
+    // Sorting functionality for column headers
+    const headers = document.querySelectorAll("thead th");
+    let currentSortColumn = null;
+    let currentSortOrder = "asc";
+
+    headers.forEach((header, index) => {
+        header.addEventListener("click", () => {
+            const columns = ["itemId", "highestBuyPrice", "lowestSellPrice", "highestPriceVolume", "lowestPriceVolume", "profit"];
+            const sortColumn = columns[index];
+
+            // Toggle sort order
+            currentSortOrder = currentSortColumn === sortColumn && currentSortOrder === "asc" ? "desc" : "asc";
+            currentSortColumn = sortColumn;
+
+            if (marketData) {
+                renderMarketData(marketData, sortColumn, currentSortOrder);
+            }
+        });
     });
 });

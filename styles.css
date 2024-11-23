@@ -1,3 +1,4 @@
+/* General Page Styling */
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
@@ -5,6 +6,7 @@ body {
     color: #e0e0e0;
 }
 
+/* Table Styling */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -30,6 +32,7 @@ th {
     cursor: pointer;
 }
 
+/* Highlighted Row Styling */
 .highlight {
     background-color: #333;
 }
@@ -38,27 +41,7 @@ th {
     background-color: #444;
 }
 
-#suggestions {
-    position: absolute;
-    background-color: #1e1e1e;
-    border: 1px solid #333;
-    color: #e0e0e0;
-    z-index: 1000;
-    max-height: 200px;
-    overflow-y: auto;
-    display: none;
-}
-
-#suggestions div {
-    padding: 8px;
-    cursor: pointer;
-}
-
-#suggestions div:hover,
-#suggestions div.highlighted {
-    background-color: #333;
-}
-
+/* Pinned Items Container */
 .pinned-items-container {
     display: flex;
     justify-content: space-between;
@@ -75,6 +58,7 @@ th {
     margin-bottom: 20px;
 }
 
+/* Pinned Item Card */
 .pinned-item-card {
     flex: 1;
     max-width: 16%;
@@ -88,31 +72,17 @@ th {
     justify-content: center;
     align-items: center;
     text-align: center;
+    position: relative;
+    /* Allows for positioning of the remove button */
     transition: transform 0.2s, background-color 0.2s;
 }
 
 .pinned-item-card:hover {
     transform: scale(1.02);
-    /* Reduce the growth to be subtle */
+    /* Reduced hover effect */
     background-color: #333;
-    /* Retain the background color change */
     transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
 }
-
-.pinned-item-card.flashing-red {
-    animation: flashRed 1s infinite alternate !important;
-}
-
-@keyframes flashRed {
-    0% {
-        background-color: rgba(255, 0, 0, 0.2);
-    }
-
-    100% {
-        background-color: rgba(255, 0, 0, 0.5);
-    }
-}
-
 
 .pinned-item-card h4 {
     font-size: 14px;
@@ -124,11 +94,7 @@ th {
     margin: 0;
 }
 
-.pinned-item-card {
-    position: relative;
-    /* Allows positioning the remove button inside the tile */
-}
-
+/* Remove Button */
 .pinned-item-card .remove-button {
     position: absolute;
     top: 5px;
@@ -148,4 +114,105 @@ th {
 
 .pinned-item-card .remove-button:focus {
     outline: none;
+}
+
+/* Flashing Red Animation */
+.pinned-item-card.flashing-red {
+    animation: flashRed 1s infinite alternate !important;
+    -webkit-animation: flashRed 1s infinite alternate !important;
+    /* For Safari */
+}
+
+@keyframes flashRed {
+    0% {
+        background-color: rgba(255, 0, 0, 0.2);
+    }
+
+    100% {
+        background-color: rgba(255, 0, 0, 0.5);
+    }
+}
+
+@-webkit-keyframes flashRed {
+    0% {
+        background-color: rgba(255, 0, 0, 0.2);
+    }
+
+    100% {
+        background-color: rgba(255, 0, 0, 0.5);
+    }
+}
+
+/* Input Styling */
+input[type="text"],
+input[type="number"] {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    padding: 8px;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+    border-color: #888;
+    box-shadow: 0px 0px 5px 2px rgba(136, 136, 136, 0.5);
+    outline: none;
+}
+
+/* General Button Styling */
+button {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    background-color: #444;
+    color: #e0e0e0;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+}
+
+button:hover {
+    background-color: #555;
+    transform: scale(1.05);
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+    transform: scale(1);
+    background-color: #333;
+}
+
+button:focus {
+    outline: none;
+    box-shadow: 0px 0px 5px 2px #888;
+}
+
+/* Suggestions Dropdown Styling */
+#suggestions {
+    position: absolute;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 5px;
+    color: #e0e0e0;
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    padding: 5px;
+}
+
+#suggestions div {
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+#suggestions div:hover,
+#suggestions div.highlighted {
+    background-color: #333;
 }
