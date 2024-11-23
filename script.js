@@ -252,12 +252,7 @@ function bringItemToTop(itemName) {
     renderMarketData([...filteredData, ...remainingData], "itemId", "asc", true);
 }
 
-// Assuming the uploaded file is JavaScript and the issue is with the mute functionality for a custom audio play.
-
-// Assuming the uploaded file is JavaScript and the issue is with the mute functionality for a custom audio play.
-
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("DOMContentLoaded event triggered");
     // Timer display for auto-fetch
     const timerDiv = document.createElement("div");
     timerDiv.id = "fetchTimer";
@@ -269,16 +264,13 @@ document.addEventListener("DOMContentLoaded", () => {
     timerDiv.style.padding = "5px 10px";
     timerDiv.style.borderRadius = "5px";
     document.body.appendChild(timerDiv);
-    console.log("Timer div added to the DOM");
 
-    let timeLeft = 30; // 30 seconds for auto-fetch timer
+    let timeLeft = 30; // Changed from 120 to 30 seconds
     function updateTimer() {
-        console.log(`Updating timer: ${timeLeft} seconds left`);
         timerDiv.textContent = `Next data fetch in: ${timeLeft} seconds`;
         timeLeft--;
         if (timeLeft < 0) {
             timeLeft = 30; // Reset timer after fetching
-            console.log("Timer reset after reaching zero");
         }
     }
     setInterval(updateTimer, 1000); // Update timer every second
@@ -286,57 +278,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Automatically fetch market data every 30 seconds
     setInterval(() => {
-        console.log("Auto-fetching market data");
         fetchMarketData();
         timeLeft = 30; // Reset timer immediately after fetch
-    }, 30000);
-
-    // Mute toggle switch
-    const toggleContainer = document.createElement("div");
-    toggleContainer.style.position = "fixed";
-    toggleContainer.style.top = "40px"; // Adjusted positioning above pinned items
-    toggleContainer.style.right = "10px";
-    toggleContainer.style.display = "flex";
-    toggleContainer.style.alignItems = "center";
-    toggleContainer.style.gap = "10px";
-
-    const toggleLabel = document.createElement("label");
-    toggleLabel.textContent = "Mute Notifications";
-    toggleLabel.style.color = "#e0e0e0";
-
-    const toggleSwitch = document.createElement("div");
-    toggleSwitch.style.width = "50px";
-    toggleSwitch.style.height = "25px";
-    toggleSwitch.style.backgroundColor = "#ccc";
-    toggleSwitch.style.borderRadius = "15px";
-    toggleSwitch.style.position = "relative";
-    toggleSwitch.style.cursor = "pointer";
-
-    const toggleCircle = document.createElement("div");
-    toggleCircle.style.width = "21px";
-    toggleCircle.style.height = "21px";
-    toggleCircle.style.backgroundColor = "#fff";
-    toggleCircle.style.borderRadius = "50%";
-    toggleCircle.style.position = "absolute";
-    toggleCircle.style.top = "2px";
-    toggleCircle.style.left = "2px";
-    toggleCircle.style.transition = "all 0.3s";
-
-    let isMuted = false;
-
-    toggleSwitch.addEventListener("click", () => {
-        isMuted = !isMuted;
-        toggleCircle.style.left = isMuted ? "26px" : "2px";
-        toggleSwitch.style.backgroundColor = isMuted ? "#444" : "#ccc";
-        toggleLabel.textContent = isMuted ? "Notifications Muted" : "Mute Notifications";
-        console.log(`Mute toggle switched: isMuted = ${isMuted}`);
-    });
-
-    toggleSwitch.appendChild(toggleCircle);
-    toggleContainer.appendChild(toggleLabel);
-    toggleContainer.appendChild(toggleSwitch);
-    document.body.appendChild(toggleContainer);
-    console.log("Mute toggle switch added to the DOM");
+    }, 30000); // Changed from 120000 to 30000 (30 seconds)
 
     // Load saved market data
     const savedData = localStorage.getItem("marketData");
@@ -345,7 +289,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const pinButton = document.getElementById("pinButton");
 
     if (savedData) {
-        console.log("Loading saved market data from localStorage");
         marketData = JSON.parse(savedData);
         renderMarketData(marketData);
         updatePinnedItems(); // Initialize pinned items
@@ -353,33 +296,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Fetch data button
     document.getElementById("fetchData").addEventListener("click", () => {
-        console.log("Fetch data button clicked");
         fetchMarketData();
     });
 
     // Search box functionality
-    searchBox.addEventListener("input", (event) => {
-        console.log(`Search box input event: ${event.target.value}`);
-        handleSearch(event);
-    });
+    searchBox.addEventListener("input", handleSearch);
 
     // Pin button functionality
     pinButton.addEventListener("click", () => {
         const itemName = searchBox.value.trim();
-        console.log(`Pin button clicked with item name: ${itemName}`);
         if (itemName) {
             const item = marketData.find(
                 i => getItemNameById(i.itemId).toLowerCase() === itemName.toLowerCase()
             );
             if (item) {
-                console.log(`Item found: ${itemName}`);
                 pinItem(item.itemId);
             } else {
-                console.warn("Item not found. Please enter a valid item name.");
                 alert("Item not found. Please enter a valid item name.");
             }
         } else {
-            console.warn("No item name entered for pinning");
             alert("Please enter an item name to pin.");
         }
     });
@@ -388,31 +323,28 @@ document.addEventListener("DOMContentLoaded", () => {
     let selectedSuggestionIndex = -1;
     searchBox.addEventListener("keydown", (event) => {
         const suggestions = Array.from(suggestionsDiv.querySelectorAll(".suggestion"));
-        console.log(`Keydown event in search box: ${event.key}`);
 
         if (event.key === "ArrowDown") {
+            // Navigate down the suggestions
             selectedSuggestionIndex = (selectedSuggestionIndex + 1) % suggestions.length;
             suggestions.forEach((el, i) => el.classList.toggle("highlighted", i === selectedSuggestionIndex));
             searchBox.value = suggestions[selectedSuggestionIndex]?.textContent || searchBox.value;
             event.preventDefault();
-            console.log(`ArrowDown pressed: selectedSuggestionIndex = ${selectedSuggestionIndex}`);
         } else if (event.key === "ArrowUp") {
+            // Navigate up the suggestions
             selectedSuggestionIndex = (selectedSuggestionIndex - 1 + suggestions.length) % suggestions.length;
             suggestions.forEach((el, i) => el.classList.toggle("highlighted", i === selectedSuggestionIndex));
             searchBox.value = suggestions[selectedSuggestionIndex]?.textContent || searchBox.value;
             event.preventDefault();
-            console.log(`ArrowUp pressed: selectedSuggestionIndex = ${selectedSuggestionIndex}`);
         } else if (event.key === "Tab" && suggestionsDiv.firstChild) {
             searchBox.value = suggestions[selectedSuggestionIndex]?.textContent || suggestionsDiv.firstChild.textContent;
             suggestionsDiv.style.display = "none";
             bringItemToTop(searchBox.value);
             event.preventDefault();
-            console.log(`Tab pressed: autofill with suggestion`);
         } else if (event.key === "Enter") {
             bringItemToTop(searchBox.value);
             suggestionsDiv.style.display = "none";
             event.preventDefault();
-            console.log(`Enter pressed: bring item to top with value: ${searchBox.value}`);
         }
     });
 
@@ -426,63 +358,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const columns = ["itemId", "highestBuyPrice", "lowestSellPrice", "highestPriceVolume", "lowestPriceVolume", "profit"];
             const sortColumn = columns[index];
 
+            // Toggle sort order
             currentSortOrder = currentSortColumn === sortColumn && currentSortOrder === "asc" ? "desc" : "asc";
             currentSortColumn = sortColumn;
-
-            console.log(`Sorting column: ${sortColumn}, order: ${currentSortOrder}`);
 
             if (marketData) {
                 renderMarketData(marketData, sortColumn, currentSortOrder);
             }
         });
-    });
-
-    // Centralized function to play notification sound
-    function playNotificationSound() {
-        console.log(`playNotificationSound called: isMuted = ${isMuted}`);
-        if (isMuted) {
-            console.log("Sound is muted, not playing");
-            return;
-        }
-        const audio = new Audio('./sounds/beep-07.wav');
-        audio.play().catch((error) => console.warn("Audio playback failed:", error));
-    }
-
-    // Example logic to trigger the sound for pinned items during fetch
-    function checkPinnedItemConditions() {
-        console.log("Checking pinned item conditions");
-        pinnedItems.forEach((item) => {
-            if (item.customBuyOffer < item.highestBuyPrice) {
-                console.log(`Pinned item condition met for item: ${item.itemId}`);
-                playNotificationSound(); // Respect mute state
-            }
-        });
-    }
-
-    // Modified fetchMarketData to include sound check
-    function fetchMarketData() {
-        console.log("Fetching market data");
-        // Assume this fetches data and updates marketData
-        // After fetching data, check pinned item conditions
-        checkPinnedItemConditions();
-    }
-
-    // Assuming there's an audio play function for the custom buy offer event
-    function playCustomBuyOfferAudio() {
-        console.log(`playCustomBuyOfferAudio called: isMuted = ${isMuted}`);
-        if (!isMuted) {
-            const audio = new Audio('customBuyOfferSound.mp3');
-            audio.play().catch((error) => console.warn("Audio playback failed:", error));
-        } else {
-            console.log("Sound is muted, not playing custom buy offer audio");
-        }
-    }
-
-    // Replace or add the playCustomBuyOfferAudio() call accordingly wherever the custom buy offer plays the audio.
-
-    document.getElementById('customBuyOffer').addEventListener('click', function () {
-        console.log("Custom buy offer clicked");
-        playCustomBuyOfferAudio();
-        // Other logic for handling custom buy offer
     });
 });
